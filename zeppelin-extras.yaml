@@ -1,0 +1,73 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: zeppelin-pod-exr
+metadata:
+  name: zeppelin-pod-extras
+objects:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    generateName: zeppelin-pod-
+  spec:
+    containers:
+    - name: zeppelin-container
+      image: pothus0718/oc-zeppelin-081
+    securityContext:
+      runAsUser: 1001560000
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: zeppelin-extras
+    labels:
+      name: zeppelin-extras
+  spec:
+    ports:
+      - name: zeppelin-extras
+        protocol: TCP
+        port: 8extras
+        targetPort: 8extras
+    selector:
+      name: zeppelin-extras
+
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: zeppelin-extras
+    labels:
+      app: zeppelin-extras
+      name: zeppelin-extras
+  spec:
+    host:
+    port:
+      targetPort: 8extras
+    tls:
+      termination: edge
+
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: zeppelin-extras
+    labels:
+      name: zeppelin-extras
+  spec:
+    strategy:
+      type: Rolling
+    triggers:
+      - type: ConfigChange
+    replicas: 1
+    selector:
+      name: zeppelin-extras
+    template:
+      metadata:
+        labels:
+          name: zeppelin-extras
+      spec:
+        containers:
+          - name: zeppelin-extras
+            image: pothus0718/oc-zeppelin-081:latest
+            ports:
+              - name: zeppelin-extras
+                protocol: TCP
+                containerPort: 8extras
